@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-import basics
+from trainlogger import basics
 
 
 class CustomValTrainer:
