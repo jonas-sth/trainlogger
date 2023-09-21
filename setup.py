@@ -12,7 +12,9 @@ setup(
     install_requires=["numpy",                     
                       "torch",
                       "torchmetrics",
-                      "tqdm"],
+                      "tqdm",
+                      "pandas",
+                      "tensorflow"],
 
     classifiers=[
         "Development Status :: 1 - Planning",
