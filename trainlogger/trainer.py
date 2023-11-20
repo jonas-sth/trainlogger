@@ -123,6 +123,7 @@ class CustomValTrainer:
 
         # Get one sample of the data with the right dimensions and use it to log the graph to tensorboard
         data_sample, _ = next(iter(DataLoader(self.train_loader.dataset, batch_size=1)))
+        data_sample = data_sample.to(self.device)
         writer.add_graph(self.model, data_sample)
 
     def _setup_training(self):
