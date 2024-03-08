@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="trainlogger",
-    version="0.1.0",    
+    version="0.1.1",
     description="A Python package",
     url="https://github.com/jonas-sth/trainlogger",
     author="Jonas Steinhäuser",
