@@ -20,21 +20,22 @@ class CustomValTrainer:
     It supports the saving of the configuration to a file and rich logging to tensorboard.
     """
 
-    def __init__(self,
-                 num_epochs: int,
-                 device: torch.device,
-                 train_loader: torch.utils.data.DataLoader,
-                 valid_loader: torch.utils.data.DataLoader,
-                 model: torch.nn.Module,
-                 optimizer: torch.optim.Optimizer,
-                 loss_function: torch.nn.Module,
-                 score_function: torchmetrics.Metric,
-                 weight_init: Callable = None,
-                 lr_scheduler: torch.optim.Optimizer = None,  # :torch.optim.lr_scheduler._LRScheduler
-                 seed: int = None,
-                 data_logger: Callable = None,
-                 result_logger: Callable = None):
-
+    def __init__(
+        self,
+        num_epochs: int,
+        device: torch.device,
+        train_loader: torch.utils.data.DataLoader,
+        valid_loader: torch.utils.data.DataLoader,
+        model: torch.nn.Module,
+        optimizer: torch.optim.Optimizer,
+        loss_function: torch.nn.Module,
+        score_function: torchmetrics.Metric,
+        weight_init: Callable = None,
+        lr_scheduler: torch.optim.Optimizer = None,  # :torch.optim.lr_scheduler._LRScheduler
+        seed: int = None,
+        data_logger: Callable = None,
+        result_logger: Callable = None,
+    ):
         self.num_epochs = num_epochs
         self.device = device
         self.train_loader = train_loader
@@ -90,36 +91,66 @@ class CustomValTrainer:
             os.makedirs(os.path.dirname(file_path))
 
         # Save the state dicts via torch
-        torch.save({"model_state_dict": self.model.state_dict(),
-                    "optimizer_state_dict": self.optimizer.state_dict(),
-                    "scheduler_state_dict": self.lr_scheduler.state_dict() if self.lr_scheduler is not None else None,
-                    }, file_path)
+        torch.save(
+            {
+                "model_state_dict": self.model.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
+                "scheduler_state_dict": self.lr_scheduler.state_dict()
+                if self.lr_scheduler is not None
+                else None,
+            },
+            file_path,
+        )
 
     def to_tensorboard(self, writer: SummaryWriter) -> None:
         """
         Writes the parameters of this trainer as formatted Markdown text to the given tensorboard writer.
         """
         # Add every component of this config with a unique tag to tensorboard as Markdown text.
-        writer.add_text(tag="00 Base Parameters",
-                        text_string=basics.to_markdown(basics.get_trainer_as_string(self)))
-        writer.add_text(tag="01 Train Dataset",
-                        text_string=basics.to_markdown(basics.get_data_loader_as_string(self.train_loader)))
-        writer.add_text(tag="02 Validation Dataset",
-                        text_string=basics.to_markdown(basics.get_data_loader_as_string(self.valid_loader)))
-        writer.add_text(tag="03 Model",
-                        text_string=basics.to_markdown(str(self.model)))
-        writer.add_text(tag="04 Weight Initialization",
-                        text_string=basics.to_markdown(basics.get_method_as_string(self.weight_init)
-                                                       if self.weight_init is not None else "None"))
-        writer.add_text(tag="05 Optimizer",
-                        text_string=basics.to_markdown(str(self.optimizer)))
-        writer.add_text(tag="06 Learning Rate Scheduler",
-                        text_string=basics.to_markdown(basics.get_state_as_string(self.lr_scheduler)
-                                                       if self.lr_scheduler is not None else "None"))
-        writer.add_text(tag="07 Loss Function",
-                        text_string=basics.to_markdown(str(self.loss_function)))
-        writer.add_text(tag="08 Score Function",
-                        text_string=basics.to_markdown(str(self.score_function)))
+        writer.add_text(
+            tag="00 Base Parameters",
+            text_string=basics.to_markdown(basics.get_trainer_as_string(self)),
+        )
+        writer.add_text(
+            tag="01 Train Dataset",
+            text_string=basics.to_markdown(
+                basics.get_data_loader_as_string(self.train_loader)
+            ),
+        )
+        writer.add_text(
+            tag="02 Validation Dataset",
+            text_string=basics.to_markdown(
+                basics.get_data_loader_as_string(self.valid_loader)
+            ),
+        )
+        writer.add_text(tag="03 Model", text_string=basics.to_markdown(str(self.model)))
+        writer.add_text(
+            tag="04 Weight Initialization",
+            text_string=basics.to_markdown(
+                basics.get_method_as_string(self.weight_init)
+                if self.weight_init is not None
+                else "None"
+            ),
+        )
+        writer.add_text(
+            tag="05 Optimizer", text_string=basics.to_markdown(str(self.optimizer))
+        )
+        writer.add_text(
+            tag="06 Learning Rate Scheduler",
+            text_string=basics.to_markdown(
+                basics.get_state_as_string(self.lr_scheduler)
+                if self.lr_scheduler is not None
+                else "None"
+            ),
+        )
+        writer.add_text(
+            tag="07 Loss Function",
+            text_string=basics.to_markdown(str(self.loss_function)),
+        )
+        writer.add_text(
+            tag="08 Score Function",
+            text_string=basics.to_markdown(str(self.score_function)),
+        )
 
         # Get one sample of the data with the right dimensions and use it to log the graph to tensorboard
         # data_sample, _ = next(iter(DataLoader(self.train_loader.dataset, batch_size=1)))
@@ -188,14 +219,24 @@ class CustomValTrainer:
             # Update learning rate
             if self.lr_scheduler is not None:
                 # Log previous lr to tensorboard
-                summary_writer.add_scalar("Learning rate", self.optimizer.param_groups[0]["lr"], epoch)
+                summary_writer.add_scalar(
+                    "Learning rate", self.optimizer.param_groups[0]["lr"], epoch
+                )
                 # Do step
                 self.lr_scheduler.step()
 
             # Track the best performance, and save the model's state
-            if (best_valid_score is None or
-                    (self.score_function.higher_is_better and valid_score > best_valid_score) or
-                    (not self.score_function.higher_is_better and valid_score < best_valid_score)):
+            if (
+                best_valid_score is None
+                or (
+                    self.score_function.higher_is_better
+                    and valid_score > best_valid_score
+                )
+                or (
+                    not self.score_function.higher_is_better
+                    and valid_score < best_valid_score
+                )
+            ):
                 best_valid_score = valid_score
                 best_model_path = os.path.join(dir_path, "best_model.pth")
                 self.save_state_dicts(best_model_path)
@@ -220,10 +261,12 @@ class CustomValTrainer:
 
         train_output = []
         train_target = []
-        for batch_idx, (data, target) in enumerate(tqdm(self.train_loader, desc="Training", leave=False)):
+        for batch_idx, (data, target) in enumerate(
+            tqdm(self.train_loader, desc="Training", leave=False)
+        ):
             # Send data to GPU
-            data = data.to(self.device).to(torch.float32)
-            target = target.to(self.device).to(torch.float32)
+            data = data.to(self.device)
+            target = target.to(self.device)
 
             # Reset optimizer
             self.optimizer.zero_grad()
@@ -247,8 +290,12 @@ class CustomValTrainer:
             train_target.extend(target.detach().cpu())
 
         # Calculate results of training
-        train_loss = self.loss_function(torch.stack(train_output), torch.stack(train_target)).item()
-        train_score = self.score_function(torch.stack(train_output), torch.stack(train_target)).item()
+        train_loss = self.loss_function(
+            torch.stack(train_output), torch.stack(train_target)
+        ).item()
+        train_score = self.score_function(
+            torch.stack(train_output), torch.stack(train_target)
+        ).item()
 
         return train_loss, train_score
 
@@ -262,10 +309,12 @@ class CustomValTrainer:
         val_output = []
         val_target = []
         with torch.no_grad():
-            for batch_idx, (data, target) in enumerate(tqdm(self.valid_loader, desc="Validating", leave=False)):
+            for batch_idx, (data, target) in enumerate(
+                tqdm(self.valid_loader, desc="Validating", leave=False)
+            ):
                 # Send data to GPU
-                data = data.to(self.device).to(torch.float32)
-                target = target.to(self.device).to(torch.float32)
+                data = data.to(self.device)
+                target = target.to(self.device)
 
                 # Make prediction
                 output = self.model(data)
@@ -279,7 +328,11 @@ class CustomValTrainer:
                 val_target.extend(target.detach().cpu())
 
         # Calculate results of validation
-        val_loss = self.loss_function(torch.stack(val_output), torch.stack(val_target)).item()
-        val_score = self.score_function(torch.stack(val_output), torch.stack(val_target)).item()
+        val_loss = self.loss_function(
+            torch.stack(val_output), torch.stack(val_target)
+        ).item()
+        val_score = self.score_function(
+            torch.stack(val_output), torch.stack(val_target)
+        ).item()
 
         return val_loss, val_score
